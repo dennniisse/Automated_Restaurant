@@ -35,7 +35,7 @@ classdef GetUR3 < handle
             
             self.UR3 = SerialLink(L,'name',name);
             self.UR3.delay = 0;
-            self.UR3.base = self.UR3.base*trotx(pi/2) * troty(pi/2);
+            self.UR3.base = self.UR3.base * trotx(pi/2) * troty(pi/2);
             
             for linkIndex = 0:self.UR3.n
                 [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3link_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
@@ -75,8 +75,7 @@ classdef GetUR3 < handle
             
         end
         
-        function GetGripper(self)
-            
+        function GetGripper(self)                        
         end
         
         function moveUR3(self,goal) % goal = location of food / place

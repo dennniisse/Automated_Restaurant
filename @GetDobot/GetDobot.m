@@ -12,8 +12,7 @@ classdef GetDobot < handle
     
     methods
         function self = GetDobot(self)
-            self.GetRobot();
-        end
+            self.GetRobot();        end
         
         function GetRobot(self)
             name = 'dobot';
@@ -26,6 +25,8 @@ classdef GetDobot < handle
             L(6) = Link([0      0       0       0      0]);
             
             self.dobot = SerialLink(L,'name',name);
+            self.dobot.base = self.dobot.base * transl([1 0 0]);
+
             self.dobot.delay = 0;
             
             L(1).qlim = [-360 360]*pi/180;
@@ -74,7 +75,7 @@ classdef GetDobot < handle
         function getGripper(self)
             
         end
-        
+
         function moveDobot(self)
             finalPos = goal;
             intPos = self.dobot.getpos();
