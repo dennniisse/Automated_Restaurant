@@ -7,6 +7,7 @@ classdef GetUR3 < handle
     end
     properties (Access = private)
         workspace = [-3 3 -3 3 -0.75 6];
+        gripperOfset = ;
     end
     
     methods
@@ -75,7 +76,8 @@ classdef GetUR3 < handle
             
         end
         
-        function GetGripper(self)                        
+        function GetGripper(self)  
+            
         end
         
         function moveUR3(self,goal) % goal = location of food / place
