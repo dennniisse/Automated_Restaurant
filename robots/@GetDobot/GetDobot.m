@@ -8,11 +8,13 @@ classdef GetDobot < handle
     end
     properties (Access = private)
         workspace = [-3 3 -3 3 -0.75 6];
+        steps = 50;
     end
     
     methods
         function self = GetDobot(self)
-            self.GetRobot();        end
+            self.GetRobot();        
+        end
         
         function GetRobot(self)
             name = 'dobot';
@@ -45,23 +47,16 @@ classdef GetDobot < handle
             end
             % Plot dobot as 3D
             self.dobot.plot3d((zeros(1,self.dobot.n)),'workspace',self.workspace);
+%             self.dobot.teach();
             
             % Colour dobot
             for linkIndex = 0:self.dobot.n
                 handles = findobj('Tag', self.dobot.name); %findobj: find graphics objects with
-                %specific properties
-                %'Tag': a property name, therefore
-                %it's finding objects whose Tag is
-                %dobot
-                %h will return the all objects in
-                %the hierarchy that have their Tag
-                %property set to value 'dobot'
-                h = get(handles,'UserData');        %get: returns the value for 'UserData'.
-                %h is a structure (see OneNote or
-                %print onto cmd)
+                h = get(handles,'UserData');        
+
                 try
-                    h.link(linkIndex+1).Children.FaceVertexCData = [plyData{linkIndex+1}.vertex.red ... %%as h is a structure we access h.link and iterate
-                        , plyData{linkIndex+1}.vertex.green ...                                         %%through each link and obtain its colour
+                    h.link(linkIndex+1).Children.FaceVertexCData = [plyData{linkIndex+1}.vertex.red ...
+                        , plyData{linkIndex+1}.vertex.green ...                                        
                         , plyData{linkIndex+1}.vertex.blue]/255;
                     h.link(linkIndex+1).Children.FaceColor = 'interp';
                 catch ME_1
@@ -76,11 +71,12 @@ classdef GetDobot < handle
             
         end
 
-        function moveDobot(self)
-            finalPos = goal;
+        function move(self,goal)
+            newQ = eye(4)*transl(goal)*troty(pi);
+            finalPos = self.dobot.ikcon(newQ);
             intPos = self.dobot.getpos();
             s = lspb(0,1,self.steps);
-            qMatrix = nan(self.steps,7);
+            qMatrix = nan(self.steps,self.dobot.n);
             for i = 1:self.steps
                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
                 self.dobot.animate(qMatrix(i,:));

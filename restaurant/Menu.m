@@ -5,7 +5,7 @@ classdef Menu < handle
         % vegetables: lettuce, tomato, corn
         % dairy: cheese, butter
         % sauce: tomato, mustard, bbq
-        trayLocation = [0.75 0.4 0]
+        trayLocation = [0.8 0.5 0];
     end
     properties (Access = private)
         workspace = [-3 3 -3 3 -0.75 6];
@@ -15,7 +15,7 @@ classdef Menu < handle
     methods
         % constructor, stores the location of all the food menu;
         function self = Menu(self)
-            
+            self.getPlates();            
             
         end
         
@@ -46,7 +46,6 @@ classdef Menu < handle
         end
         
         
-        function (self)
-        end
+        
     end
 end

@@ -7,6 +7,7 @@ classdef GetUR3 < handle
     end
     properties (Access = private)
         workspace = [-3 3 -3 3 -0.75 6];
+        steps = 50;
 %         gripperOfset = ;
     end
     
@@ -80,11 +81,12 @@ classdef GetUR3 < handle
             
         end
         
-        function moveUR3(self,goal) % goal = location of food / place
-            finalPos = goal; 
+        function move(self,goal) % goal = location of food / place
+            newQ = eye(4)*transl(goal);
+            finalPos = self.UR3.ikcon(newQ); 
             intPos = self.UR3.getpos(); 
             s = lspb(0,1,self.steps);
-            qMatrix = nan(self.steps,7);
+            qMatrix = nan(self.steps,self.UR3.n);
             for i = 1:self.steps
                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
                 self.UR3.animate(qMatrix(i,:));                
