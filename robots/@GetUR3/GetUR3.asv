@@ -72,20 +72,16 @@ classdef GetUR3 < handle
             
         end
         
-        function move(self,goal,moveOthersFlag,itemHandle) % if true, then we move the handle
-            newQ = eye(4)*transl(goal)*troty(pi);
-            finalPos = self.UR3.ikcon(newQ);
-            intPos = self.UR3.getpos();
+        function move(self,goal) % goal = location of food / place
+            newQ = eye(4)*transl(goal);
+            finalPos = self.UR3.ikcon(newQ); 
+            intPos = self.UR3.getpos(); 
             s = lspb(0,1,self.steps);
             qMatrix = nan(self.steps,self.UR3.n);
             for i = 1:self.steps
                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
-                self.UR3.animate(qMatrix(i,:));
-                drawnow(); 
-                if moveOthersFlag == true;
-                    eeBase = self.UR3.fkine(self.UR3.getpos());
-                    itemHandle.moveFood(eeBase);
-                end
+                self.UR3.animate(qMatrix(i,:));                
+                drawnow();
             end
         end
         

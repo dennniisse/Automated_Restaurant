@@ -24,7 +24,7 @@ classdef GetDobot < handle
             L(3) = Link([0    -0.1165  0.230      0     0]);
             L(4) = Link([0      0.116   0      pi/2    0]);
             L(5) = Link([0      0.116   0     -pi/2  	 0]);
-            L(6) = Link([0      0       0       0      0]);
+            L(6) = Link([0      0      0       0      0]);
             
             self.dobot = SerialLink(L,'name',name);
             self.dobot.base = self.dobot.base * transl([0.8 0 0]);
