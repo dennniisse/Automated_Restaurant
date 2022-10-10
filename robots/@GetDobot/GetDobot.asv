@@ -14,6 +14,7 @@ classdef GetDobot < handle
     methods
         function self = GetDobot(self)
             self.GetRobot();   
+            menu = Menu();
         end
         
         function GetRobot(self)
@@ -81,22 +82,7 @@ classdef GetDobot < handle
                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
                 self.dobot.animate(qMatrix(i,:));
                 drawnow(); 
-                if moveOthersFlag == true;
-                    eeBase = self.dobot.fkine(self.dobot.getpos());
-                    itemHandle.moveTray(eeBase);
-                end
-            end
-        end
-        
-        function resetPose(self)
-            finalPos = zeros(1,6);
-            intPos = self.dobot.getpos();
-            s = lspb(0,1,self.steps);
-            qMatrix = nan(self.steps,self.dobot.n);
-            for i = 1:self.steps
-                qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
-                self.dobot.animate(qMatrix(i,:));
-                drawnow();
+                i
             end
         end
     end
