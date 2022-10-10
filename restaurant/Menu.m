@@ -5,7 +5,7 @@ classdef Menu < handle
         % vegetables: lettuce, tomato, corn
         % dairy: cheese, butter
         % sauce: tomato, mustard, bbq
-        trayLocation = [0.8 0.5 0];
+        trayLocation = [0.75 0.5 0]; % for some reason model can't reach it when it's at 0.8, no matter what y value I give it 
     end
     properties (Access = private)
         workspace = [-3 3 -3 3 -0.75 6];
