@@ -40,7 +40,7 @@ classdef GetUR3 < handle
             self.UR3.base = self.UR3.base * trotx(pi/2) * troty(pi/2);
             
             for linkIndex = 1:self.UR3.n
-                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3link_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
+                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['rover_ur3_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
                 self.UR3.faces{linkIndex + 1} = faceData;
                 self.UR3.points{linkIndex + 1} = vertexData;
             end
