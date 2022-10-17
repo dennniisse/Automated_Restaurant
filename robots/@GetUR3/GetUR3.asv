@@ -4,8 +4,7 @@
 classdef GetUR3 < handle
     properties
         UR3
-        modelRight
-        modelLeft
+        model
     end
     properties (Access = private)
         workspace = [-9 9 -9 9 -0.1 6];
@@ -17,7 +16,6 @@ classdef GetUR3 < handle
         function self = GetUR3(self)
             self.GetRobot();
             self.GetEnvironment();
-            self.GetGripper();
         end
         
         function GetRobot(self)
@@ -81,13 +79,12 @@ classdef GetUR3 < handle
         end
         
         function GetGripper(self)
-            gripperBase = self.UR3.fkine(self.UR3.getpos());
             L(1) = Link([0 0 0 0 1 0]);
             L(2) = Link([0   0    0.01   0   0   0]);
             L(1).qlim = [0 0]*pi/180; %make base static
             L(2).qlim = [-5 10]*pi/180; %trial and error to figure out the limit using .teach()
             self.modelRight = SerialLink(L,'name','gripperRight');
-            self.modelRight.base =  gripperBase * troty(pi/2);%self.modelRight.base * transl([[gripperBase(1), gripperBase(2), gripperBase(3)]]);
+            self.modelRight.base =  self.gripperBase * troty(pi/2);%self.modelRight.base * transl([[self.gripperBase(1), self.gripperBase(2), self.gripperBase(3)]]);
             
             %Plot annd Colour Gripper
             for linkIndex = 1:self.modelRight.n
@@ -111,68 +108,15 @@ classdef GetUR3 < handle
                         , plyData{linkIndex+1}.vertex.blue]/255;
                     h.link(linkIndex+1).Children.FaceColor = 'interp';
                 catch ME_1
+                    %                     disp(ME_1);
                     continue;
                 end
             end
             
-            L = Link([0   0    0.01   0   0   0]);
-            L.qlim = [-10 5]*pi/180;
-            self.modelLeft = SerialLink(L,'name','gripperLeft');
-            self.modelLeft.base = gripperBase* troty(pi/2); %self.modelLeft.base * transl([[gripperBase]]);
             
-            % Plot Left Finger 
-            [ faceData, vertexData, plyData{2} ] = plyread(['gripper_ur3_3.ply'],'tri'); %#ok<AGROW>
-            self.modelLeft.faces{2} = faceData;
-            self.modelLeft.points{2} = vertexData;
-            self.modelLeft.plot3d(5*pi/180,'workspace',self.workspace,'arrow');
-            
-            % Colour Left Finger   
-            if isempty(findobj(get(gca,'Children'),'Type','Light'))
-                camlight
-            end                     
-            handles = findobj('Tag', self.modelLeft.name); 
-            h = get(handles,'UserData');
-            try
-                h.link(2).Children.FaceVertexCData = [plyData{2}.vertex.red ...
-                    , plyData{2}.vertex.green ...                                  
-                    , plyData{2}.vertex.blue]/255;
-                h.link(2).Children.FaceColor = 'interp';
-            catch ME_1
-            end
         end
         
-        function OpenGripper(self)
-            rightQ = [0,-5]*pi/180;
-            leftQ = 5*pi/180;
-            self.modelRight.animate([0,rightQ(2)]); %move gripper
-            self.modelLeft.animate(leftQ); %move gripper 
-        end 
-        
-        function transformGripper(self,steps,gripperClose) %true close gripper
-            %transform Base
-            gripperBase = self.UR3.fkine(self.UR3.getpos());
-            if (gripperClose == true)
-            q = deg2rad(10/steps); % the distance the gripper moves is already set (15deg). 
-                                        % Therefore, using steps the UR3 is moving from, the distance at each step can be computer
-            rightQ = self.modelRight.getpos() + q ; %return q = [q1 q2], move towards +ve 5deg to close
-            leftQ = self.modelLeft.getpos() - q; %return q = [q1], move towards -ve 10deg to close            
-            self.modelRight.base = gripperBase* troty(pi/2)* trotx(pi/2);
-            self.modelLeft.base = gripperBase* troty(pi/2)* trotx(pi/2);            
-            %Move gripper            
-                self.modelRight.animate([0,rightQ(2)]); %move gripper
-                self.modelLeft.animate(leftQ); %move gripper
-            end
-            if (gripperClose == false)
-                rightQ = self.modelRight.getpos();
-                leftQ = self.modelLeft.getpos();
-                self.modelRight.base = gripperBase* troty(pi/2)* trotx(pi/2);
-                self.modelLeft.base = gripperBase* troty(pi/2)* trotx(pi/2);
-                self.modelRight.animate([0,rightQ(2)]); %move gripper
-                self.modelLeft.animate(leftQ); %move gripper                
-            end
-        end
-        
-        function move(self,goal) % if true, then we move the handle
+        function move(self,goal,moveOthersFlag,itemHandle) % if true, then we move the handle
             newQ = eye(4)*transl(goal)*troty(pi);
             finalPos = self.UR3.ikcon(newQ);
             intPos = self.UR3.getpos();
@@ -181,8 +125,11 @@ classdef GetUR3 < handle
             for i = 1:self.steps
                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
                 self.UR3.animate(qMatrix(i,:));
-                self.transformGripper(self.steps,false);
-                drawnow();                
+                drawnow();
+                if moveOthersFlag == true;
+                    eeBase = self.UR3.fkine(self.UR3.getpos());
+                    itemHandle.moveFood(eeBase);
+                end
             end
         end
         
