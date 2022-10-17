@@ -9,8 +9,7 @@ classdef GetUR3 < handle
     end
     properties (Access = private)
         workspace = [-9 9 -9 9 -0.1 6];
-        steps = 50;
-        %         gripperOfset = ;
+        steps = 15;
     end
     
     methods
@@ -87,6 +86,7 @@ classdef GetUR3 < handle
             L(1).qlim = [0 0]*pi/180; %make base static
             L(2).qlim = [-5 10]*pi/180; %trial and error to figure out the limit using .teach()
             self.modelRight = SerialLink(L,'name','gripperRight');
+            self.modelRight.delay = 0;
             self.modelRight.base =  gripperBase * troty(pi/2);%self.modelRight.base * transl([[gripperBase(1), gripperBase(2), gripperBase(3)]]);
             
             %Plot annd Colour Gripper
@@ -118,6 +118,7 @@ classdef GetUR3 < handle
             L = Link([0   0    0.01   0   0   0]);
             L.qlim = [-10 5]*pi/180;
             self.modelLeft = SerialLink(L,'name','gripperLeft');
+            self.modelLeft.delay = 0;
             self.modelLeft.base = gripperBase* troty(pi/2); %self.modelLeft.base * transl([[gripperBase]]);
             
             % Plot Left Finger 
@@ -172,7 +173,7 @@ classdef GetUR3 < handle
             end
         end
         
-        function move(self,goal) % if true, then we move the handle
+        function move(self,goal) 
             newQ = eye(4)*transl(goal)*troty(pi);
             finalPos = self.UR3.ikcon(newQ);
             intPos = self.UR3.getpos();
