@@ -20,7 +20,7 @@ classdef GetUR3 < handle
             name = 'UR3';
             % dh = [THETA D A ALPHA SIGMA OFFSET]
             L(1) = Link([pi    0      0   pi/2    1   0]);
-            L(2) = Link([0    0.1519  0   pi/2    0   0]);
+            L(2) = Link([0    0.383  0   pi/2    0   0]); %.1519 + .5174
             L(3) = Link([0    0   -0.24365   0    0   0]);
             L(4) = Link([0    0   -0.21325   0    0   0]);
             L(5) = Link([0    0.11235     0   pi/2    0   0]);
@@ -39,7 +39,7 @@ classdef GetUR3 < handle
             self.UR3.delay = 0;
             self.UR3.base = self.UR3.base * trotx(pi/2) * troty(pi/2);
             
-            for linkIndex = 0:self.UR3.n
+            for linkIndex = 1:self.UR3.n
                 [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['ur3link_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
                 self.UR3.faces{linkIndex + 1} = faceData;
                 self.UR3.points{linkIndex + 1} = vertexData;
@@ -52,7 +52,7 @@ classdef GetUR3 < handle
             end
             
             % Colour UR3
-            for linkIndex = 0:self.UR3.n
+            for linkIndex = 1:self.UR3.n
                 handles = findobj('Tag', self.UR3.name); %findobj: find graphics objects with
                 h = get(handles,'UserData'); 
                 try
