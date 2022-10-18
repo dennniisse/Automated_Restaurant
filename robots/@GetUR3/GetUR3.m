@@ -8,7 +8,7 @@ classdef GetUR3 < handle
         modelLeft
     end
     properties (Access = private)
-        workspace = [-9 9 -9 9 -0.1 6];
+        workspace = [-9 9 -9 9 0 6];
         steps = 15;
         % environment handles
         env_h; m_h;
@@ -18,7 +18,7 @@ classdef GetUR3 < handle
     methods
         function self = GetUR3(self)
             self.GetRobot();
-            self.GetEnvironment();
+%             self.GetEnvironment();
             self.GetGripper();
         end
         
@@ -183,22 +183,52 @@ classdef GetUR3 < handle
             end
         end
         
+%         function move(self,goal,gripperBool) 
+%             q2 = goal;
+%             q2(3) = goal(3) + self.gripperOffset;
+%             newQ = eye(4)*transl(q2)*troty(pi);
+%             finalPos = self.model.ikcon(newQ);
+%             intPos = self.model.getpos();
+%             s = lspb(0,1,self.steps);
+%             qMatrix = nan(self.steps,self.model.n);
+%             for i = 1:self.steps
+%                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
+%                 self.model.animate(qMatrix(i,:));
+%                 self.transformGripper(self.steps,gripperBool);
+%                 drawnow();                
+%             end
+%         end
+        
         function move(self,goal,gripperBool) 
-            q2 = goal;
-            q2(3) = goal(3) + self.gripperOffset;
-            newQ = eye(4)*transl(q2)*troty(pi);
-            finalPos = self.model.ikcon(newQ);
-            intPos = self.model.getpos();
-            s = lspb(0,1,self.steps);
-            qMatrix = nan(self.steps,self.model.n);
+            % steps
+            T1 = self.model.fkine(self.model.getpos);% T1 get curernt Pose and make into homoegenous transform
+            x1 = [T1(1,4) T1(2,4)];% x1 get the x y of T1
+            x2 = [goal(1) goal(2)];% x2 get the x y of T2 (which is the goal x and y)
+            deltaT = 0.05; % discrete time step
+            x = zeros(2,self.steps);
+            s = lspb(0,1,self.steps);                                 % Create interpolation scalar
             for i = 1:self.steps
-                qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
-                self.model.animate(qMatrix(i,:));
-                self.transformGripper(self.steps,gripperBool);
-                drawnow();                
+                x(:,i) = x1*(1-s(i)) + s(i)*x2;                  % Create trajectory in x-y plane
             end
+            qMatrix = nan(self.steps,self.model.n);
+            qMatrix(1,:) = self.model.ikcon(transl(goal));
+            for i = 1:self.steps
+                xdot = (x(:,i+1) - x(:,i))/deltaT;  
+                J = self.model.jacob0(qMatrix(i,:));
+                J = J(1:6,1:6);
+                qdot = inv(J)*xdot
+                qMatrix(i+1,:) =  qMatrix(i,:) + deltaT*qdot';
+                
+                self.model.animate(qMatrix(i,:));
+                self.transformGripper(self.self.steps,gripperBool);
+                drawnow();  
+            end
+            
         end
         
+%         function selfCollision
+%             % select specified joint angles (the more the better) 
+%         end
     end
 end
 
