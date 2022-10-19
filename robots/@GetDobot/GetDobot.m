@@ -4,7 +4,7 @@
 %%
 classdef GetDobot < handle
     properties
-        dobot
+        model
     end
     properties (Access = private)
         workspace = [-3 3 -3 3 -0.75 6];
@@ -26,10 +26,10 @@ classdef GetDobot < handle
             L(5) = Link([0      0.116   0     -pi/2  	 0]);
             L(6) = Link([0      0      0       0      0]);
             
-            self.dobot = SerialLink(L,'name',name);
-            self.dobot.base = self.dobot.base * transl([0.8 0 0]);
+            self.model = SerialLink(L,'name',name);
+            self.model.base = self.model.base * transl([0.8 0 0]);
 
-            self.dobot.delay = 0;
+            self.model.delay = 0;
             
             L(1).qlim = [-360 360]*pi/180;
             L(2).qlim = [-90 90]*pi/180;
@@ -40,18 +40,18 @@ classdef GetDobot < handle
             L(2).offset = pi/2;
             L(4).offset = pi/2;
             
-            for linkIndex = 0:self.dobot.n
+            for linkIndex = 0:self.model.n
                 [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['dobotlink_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
-                self.dobot.faces{linkIndex + 1} = faceData;
-                self.dobot.points{linkIndex+1} = vertexData;
+                self.model.faces{linkIndex + 1} = faceData;
+                self.model.points{linkIndex+1} = vertexData;
             end
             % Plot dobot as 3D
-            self.dobot.plot3d((zeros(1,self.dobot.n)),'workspace',self.workspace);
-%             self.dobot.teach();
+            self.model.plot3d((zeros(1,self.model.n)),'workspace',self.workspace);
+%             self.model.teach();
             
             % Colour dobot
-            for linkIndex = 0:self.dobot.n
-                handles = findobj('Tag', self.dobot.name); %findobj: find graphics objects with
+            for linkIndex = 0:self.model.n
+                handles = findobj('Tag', self.model.name); %findobj: find graphics objects with
                 h = get(handles,'UserData');        
 
                 try
@@ -73,16 +73,16 @@ classdef GetDobot < handle
 
         function move(self,goal,moveOthersFlag,itemHandle) % if true, then we move the handle
             newQ = eye(4)*transl(goal)*troty(pi);
-            finalPos = self.dobot.ikcon(newQ);
-            intPos = self.dobot.getpos();
+            finalPos = self.model.ikcon(newQ);
+            intPos = self.model.getpos();
             s = lspb(0,1,self.steps);
-            qMatrix = nan(self.steps,self.dobot.n);
+            qMatrix = nan(self.steps,self.model.n);
             for i = 1:self.steps
                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
-                self.dobot.animate(qMatrix(i,:));
+                self.model.animate(qMatrix(i,:));
                 drawnow(); 
                 if moveOthersFlag == true;
-                    eeBase = self.dobot.fkine(self.dobot.getpos());
+                    eeBase = self.model.fkine(self.model.getpos());
                     itemHandle.moveTray(eeBase);
                 end
             end
@@ -90,12 +90,12 @@ classdef GetDobot < handle
         
         function resetPose(self)
             finalPos = zeros(1,6);
-            intPos = self.dobot.getpos();
+            intPos = self.model.getpos();
             s = lspb(0,1,self.steps);
-            qMatrix = nan(self.steps,self.dobot.n);
+            qMatrix = nan(self.steps,self.model.n);
             for i = 1:self.steps
                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
-                self.dobot.animate(qMatrix(i,:));
+                self.model.animate(qMatrix(i,:));
                 drawnow();
             end
         end

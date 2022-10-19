@@ -1,6 +1,6 @@
 clear; clc; clf;
 hold on;
-dobot = GetDobot();
+% dobot = GetDobot();
 UR3 = GetUR3();
 % self.brickLocation = [0 0 0];
 % [f,self.v,data] = plyread('HalfSizedRedGreenBrick.ply','tri');
@@ -12,5 +12,5 @@ UR3 = GetUR3();
 %     ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
 
 % Test to move UR3 to ingredients
-goal = [0 0 0.6];
-UR3.move(goal);
+% goal = [-2 0 0];
+% UR3.move(goal, false);
