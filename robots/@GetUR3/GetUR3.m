@@ -52,7 +52,8 @@ classdef GetUR3 < handle
             end
             % Plot UR3 as 3D
             q = zeros(1,7);
-            self.model.plot3d(q,'workspace',self.workspace);
+            self.model.plot3d(q,'workspace',self.workspace,'ortho');
+             axis equal;
             if isempty(findobj(get(gca,'Children'),'Type','Light'))
                 camlight
             end
@@ -213,9 +214,9 @@ classdef GetUR3 < handle
             qMatrix = nan(self.steps,self.model.n);
             qMatrix(1,:) = self.model.ikcon(transl(goal));
             for i = 1:self.steps
-                xdot = (x(:,i+1) - x(:,i))/deltaT;  
+                xdot = (x(:,i+1) - x(:,i))/deltaT;                  
                 J = self.model.jacob0(qMatrix(i,:));
-                J = J(1:6,1:6);
+                J = J(1:2,:);
                 qdot = inv(J)*xdot
                 qMatrix(i+1,:) =  qMatrix(i,:) + deltaT*qdot';
                 
