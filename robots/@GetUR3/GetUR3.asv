@@ -311,14 +311,19 @@ classdef GetUR3 < handle
                 qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197;...
                 qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 0 -1.6197;...
                 qMatrix(1) 1.1436 -0.7079 2.5908 0 0 -1.6197;...
-                0 1.1436 -0.7079 0 0 0 -1.6197;...
-                0 1.1436 0 0 0 0 -1.6197]);
+                qMatrix(1) 0 -0.7079 0 0 0 0;...
+                0 0 0 0 0 0 0;...
+                0 0 0 0 0 0 0]);
             steps = round(self.steps / size(qWayPoints,1));
             
             for i = 1:size(qWayPoints,1)-1
                 qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
             end
-            for i = 1:size(qMatrix,1)
+            size(qMatrix)
+            qMatrix
+            
+            for i = 1:size(qMatrix,1)-1
+                disp(i);
                 self.model.animate(qMatrix(i,:));
                 self.transformGripper(steps,false)
                 drawnow();

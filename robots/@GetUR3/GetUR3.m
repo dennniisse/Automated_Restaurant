@@ -318,13 +318,12 @@ classdef GetUR3 < handle
             for i = 1:size(qWayPoints,1)-1
                 qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
             end
-            size(qMatrix)
-            qMatrix
             
-            for i = 1:size(qMatrix,1)-1
+            for i = 1:size(qMatrix,1)
                 disp(i);
                 self.model.animate(qMatrix(i,:));
-                self.transformGripper(steps,false)
+                qMatrix(i,:)
+                self.transformGripper(steps,false);
                 drawnow();
             end
             
