@@ -8,6 +8,7 @@ classdef GetUR3 < handle
         modelLeft
     end
     properties (Access = private)
+        imgSize = 12;
         workspace = [-2 2 -2 2 -0.05 4];
         steps = 50;
         % environment handles
@@ -18,7 +19,7 @@ classdef GetUR3 < handle
     methods
         function self = GetUR3(self)
             self.GetRobot();
-%             self.GetEnvironment();
+            self.GetEnvironment();
             self.GetGripper();
             self.initPickUp();
         end
@@ -86,13 +87,14 @@ classdef GetUR3 < handle
         
         
         function GetEnvironment(self)
-            self.env_h(1) = surf([-8,-8;8,8],[-8,8;-8,8],[0,0;0,0],'CData',imread('ground_mars.jpg'),'FaceColor','texturemap');
-            self.env_h(2) = surf([8,-8;8,-8],[8,8;8,8],[5,5;0,0],'CData',imread('wall_mars.jpg'),'FaceColor','texturemap');
-            self.env_h(3) = surf([8,8;8,8],[8,-8;8,-8],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
-            self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-8 8 0]);
-            self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-4 8 0]);
-            self.rocks_h(3) = PlaceObject("BeachRockFree_decimated.ply",[0 8 0]);
-            self.rocks_h(4) = PlaceObject("BeachRockFree_decimated.ply",[3.7 8 0]);
+%             self.env_h(1) = surf([-self.imgSize,-self.imgSize;self.imgSize,self.imgSize],[-self.imgSize,self.imgSize;-self.imgSize,self.imgSize],[0,0;0,0],'CData',imread('ground_mars.jpg'),'FaceColor','texturemap');
+%             self.env_h(2) = surf([self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[self.imgSize,self.imgSize;self.imgSize,self.imgSize],[5,5;0,0],'CData',imread('wall_mars.jpg'),'FaceColor','texturemap');
+%             self.env_h(3) = surf([self.imgSize,self.imgSize;self.imgSize,self.imgSize],[self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
+%             self.env_h(4) = PlaceObject("spacebase.ply", [7.8 7 0]);
+%             self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
+%             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
+%             self.rocks_h(3) = PlaceObject("BeachRockFree_decimated.ply",[0 self.imgSize 0]);
+%             self.rocks_h(4) = PlaceObject("BeachRockFree_decimated.ply",[3.7 self.imgSize 0]);
             self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
         end
         
@@ -301,8 +303,32 @@ classdef GetUR3 < handle
                 self.transformGripper(steps,false)
                 drawnow();
             end
-            
         end 
+            
+        function initDropOff(self)
+            qMatrix = [self.model.getpos];
+            qWayPoints = ([qMatrix; ...
+                qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197;...
+                qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 0 -1.6197;...
+                qMatrix(1) 1.1436 -0.7079 2.5908 0 0 -1.6197;...
+                qMatrix(1) 0 -0.7079 0 0 0 0;...
+                0 0 0 0 0 0 0]);
+            steps = round(self.steps / size(qWayPoints,1));
+            
+            for i = 1:size(qWayPoints,1)-1
+                qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
+            end
+            size(qMatrix)
+            qMatrix
+            
+            for i = 1:size(qMatrix,1)-1
+                disp(i);
+                self.model.animate(qMatrix(i,:));
+                self.transformGripper(steps,false)
+                drawnow();
+            end
+            
+        end
         
     end
 end
