@@ -8,17 +8,17 @@ classdef GetUR3 < handle
         modelLeft
     end
     properties (Access = private)
-        workspace = [-2 2 -2 2 0 4];
+        workspace = [-2 2 -2 2 -0.05 4];
         steps = 50;
         % environment handles
         env_h; rocks_h;
-        gripperOffset = 0.15
+        gripperOffset = 0.2
     end
     
     methods
         function self = GetUR3(self)
             self.GetRobot();
-            self.GetEnvironment();
+%             self.GetEnvironment();
             self.GetGripper();
             self.initPickUp();
         end
@@ -52,10 +52,10 @@ classdef GetUR3 < handle
                 self.model.points{linkIndex + 1} = vertexData;
             end
             % Plot UR3 as 3D
-            q = zeros(1,7);
-%             q = [0    1.0210   -1.5708    1.5708   -3.4016   -1.5984   0]; % main pose
+            q = zeros(1,7); q(7) =  -1.3656;
+%             q = [0    1.0210   -1.5708    1.5708   -3.4016   -1.5984   0]; % 
 %             q = [-0.2469    1.1097   -1.3128    3.2072   -3.4505   -1.6088   -1.3656];
-%             q = [-0.2043 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197];% obtained from sim
+%             q = [-0.2043 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197];% obtained from sim, main pose
 %             q = [0 1.5708 -1.5708 0 0 -1.5708 0]; % straight man
 %             q = deg2rad([0 90 -45 45 -90 -90 0]); % bad starting pose
 
@@ -88,7 +88,7 @@ classdef GetUR3 < handle
         function GetEnvironment(self)
             self.env_h(1) = surf([-8,-8;8,8],[-8,8;-8,8],[0,0;0,0],'CData',imread('ground_mars.jpg'),'FaceColor','texturemap');
             self.env_h(2) = surf([8,-8;8,-8],[8,8;8,8],[5,5;0,0],'CData',imread('wall_mars.jpg'),'FaceColor','texturemap');
-            %             surf([8,8;8,8],[8,-8;8,-8],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
+            self.env_h(3) = surf([8,8;8,8],[8,-8;8,-8],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
             self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-8 8 0]);
             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-4 8 0]);
             self.rocks_h(3) = PlaceObject("BeachRockFree_decimated.ply",[0 8 0]);
@@ -98,7 +98,7 @@ classdef GetUR3 < handle
         
         function RemoveEnvironment(self)
             delete(self.env_h);
-            delete(self.m_h);
+            delete(self.rocks_h);
         end
         
         function GetGripper(self)
@@ -214,11 +214,12 @@ classdef GetUR3 < handle
         % applies RMRC
         function move(self,goal,gripperBool)   
             goal(3) = goal(3) + self.gripperOffset;
+            disp(["GOAL IS: ", num2str(goal)]);
             goal = transl(goal)  * troty(pi);
-            % Set parameters
+            % Set parametersf steps for simu
             t = 1;             % Total time (s)
             deltaT = 0.02;      % Control frequency
-            steps = t/deltaT;   % No. of steps for simulation
+            steps = t/deltaT;   % No. olation
             delta = 2*pi/steps; % Small angle change
             epsilon = 0.1;      % Threshold value for manipulability/Damped Least Squares
             W = diag([1 1 1 0.1 0.1 0.1]);    % Weighting matrix for the velocity vector
@@ -285,15 +286,15 @@ classdef GetUR3 < handle
         function initPickUp(self)    
             qMatrix = [self.model.getpos];
             qWayPoints = ([qMatrix;...
-                0 1.0210 0 0 0 0 0;...
-                0 1.0210 -1.5708 0 0 0 0;...
-                0 1.0210 -1.5708 1.5708 -0 0 -0;...
-                0 1.0210 -1.5708 1.5708 -3.4016 0 0;...
-                0 1.0210 -1.5708 1.5708 -3.4016 -1.5984 0]); 
+                0 1.1436 0 0 0 0 -1.6197;...
+                0 1.1436 -0.7079 0 0 0 -1.6197;...
+                0 1.1436 -0.7079 2.5908 -0 0 -1.6197;...
+                0 1.1436 -0.7079 2.5908 -3.4388 0 -1.6197;...
+                0 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197]); 
             steps = round(self.steps / size(qWayPoints,1));
-            
+%             q = [-0.2043 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197]
             for i = 1:size(qWayPoints,1)-1
-                qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)]
+                qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
             end
             for i = 1:size(qMatrix,1)
                 self.model.animate(qMatrix(i,:));

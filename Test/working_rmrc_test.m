@@ -13,14 +13,13 @@ steps = t/deltaT;   % No. of steps for simulation
 delta = 2*pi/steps; % Small angle change
 epsilon = 0.1;      % Threshold value for manipulability/Damped Least Squares
 W = diag([1 1 1 0.1 0.1 0.1]);    % Weighting matrix for the velocity vector
-
 % Allocate array data
 qMatrix = zeros(steps,7);       % Array for joint anglesR
 qdot = zeros(steps,7);          % Array for joint velocities
 theta = zeros(3,steps);         % Array for roll-pitch-yaw angles
 x = zeros(3,steps);             % Array for x-y-z trajectory
 % Get current pose
-q0 = ur3.model.getpos;                   % Initial guess for joint angles
+q0 = self.model.getpos;                   % Initial guess for joint angles
 T1 = self.model.fkine(q0);% T1 get curernt Pose and make into homoegenous transform
 x1 = [T1(1,4) T1(2,4) T1(3,4)];% x1 get the x y of T1
 x2 = [goal(1,4) goal(2,4) goal(3,4)];% x2 get the x y of T2 (which is the goal x and y)
@@ -34,10 +33,10 @@ for i=1:steps
     theta(:,i) = (1-s(i))*th1 + s(i)*th2; % R P Y angles
     theta(3,i) = pi/2;
 end
-qMatrix(1,:) = ur3.model.ikcon(T1,q0);   % Solve joint angles to achieve first waypoint
+qMatrix(1,:) = self.model.ikcon(T1,q0);   % Solve joint angles to achieve first waypoint
 % Track the trajectory with RMRC
 for i = 1:steps-1
-    T1 = ur3.model.fkine(qMatrix(i,:));                                           % Get forward transformation at current joint state
+    T1 = self.model.fkine(qMatrix(i,:));                                           % Get forward transformation at current joint state
     deltaX = x(:,i+1) - T1(1:3,4);                                         	% Get position error from next waypoint
     Rd = rpy2r(theta(1,i+1),theta(2,i+1),theta(3,i+1));                     % Get next RPY angles, convert to rotation matrix
     Ra = T1(1:3,1:3);                                                        % Current end-effector rotation matrix
