@@ -87,14 +87,12 @@ classdef GetUR3 < handle
         
         
         function GetEnvironment(self)
-%             self.env_h(1) = surf([-self.imgSize,-self.imgSize;self.imgSize,self.imgSize],[-self.imgSize,self.imgSize;-self.imgSize,self.imgSize],[0,0;0,0],'CData',imread('ground_mars.jpg'),'FaceColor','texturemap');
-%             self.env_h(2) = surf([self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[self.imgSize,self.imgSize;self.imgSize,self.imgSize],[5,5;0,0],'CData',imread('wall_mars.jpg'),'FaceColor','texturemap');
-%             self.env_h(3) = surf([self.imgSize,self.imgSize;self.imgSize,self.imgSize],[self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
-%             self.env_h(4) = PlaceObject("spacebase.ply", [7.8 7 0]);
-%             self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
-%             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
-%             self.rocks_h(3) = PlaceObject("BeachRockFree_decimated.ply",[0 self.imgSize 0]);
-%             self.rocks_h(4) = PlaceObject("BeachRockFree_decimated.ply",[3.7 self.imgSize 0]);
+            self.env_h(1) = surf([-self.imgSize,-self.imgSize;self.imgSize,self.imgSize],[-self.imgSize,self.imgSize;-self.imgSize,self.imgSize],[0,0;0,0],'CData',imread('ground_mars.jpg'),'FaceColor','texturemap');
+            self.env_h(2) = surf([self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[self.imgSize,self.imgSize;self.imgSize,self.imgSize],[5,5;0,0],'CData',imread('wall_mars.jpg'),'FaceColor','texturemap');
+            self.env_h(3) = surf([self.imgSize,self.imgSize;self.imgSize,self.imgSize],[self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
+            self.env_h(4) = PlaceObject("spacebase.ply", [7.8 7 0]);
+            self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
+            self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
             self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
         end
         
