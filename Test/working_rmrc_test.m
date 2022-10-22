@@ -1,5 +1,21 @@
 %% Robotics
-% Lab 9 - Question 1 - Resolved Motion Rate Control in 6DOF
+% Set parameters
+% Total time to execute trajectory
+ % control frequency (Hz) 
+ % No. of steps for simulation which is based on t and deltaT 
+ % Unique, base on manipulator, play around with simulation to 
+               % get the value. Threshold value for manipulability / Damped Least Squares 
+% Weighting matrix for the velocity vector. Weighs how important x y z r p
+                              % y is. Want to give more value to x y z?
+
+                              
+% Obtain initial data 
+% Trasnformation of first point and angle
+% Initial guess for joint angles (robot.getpos)
+% The first waypoint of the qMatrix
+% Trajectory calculations
+
+% RMRC: use the redundant equation as there are 7 joints m < n. 
 clc
 goal = transl([-1 0 0])*troty(pi);
 h = PlaceObject("rock.ply",goal(1:3,4)');

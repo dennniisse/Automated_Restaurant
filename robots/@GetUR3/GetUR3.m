@@ -12,33 +12,17 @@ classdef GetUR3 < handle
         workspace = [-2 2 -2 2 -0.05 4];
         steps = 50;
         gripperOffset = 0.2;
-        qMatrix = [];         
-        env_h; rocks_h; % environment handles
+        qMatrix = [];       
+        
         
     end
     
     methods
         function self = GetUR3(self)
             self.GetRobot();
-%             self.GetEnvironment();
             self.GetGripper();
             self.initPickUp();
         end      
-        
-        function GetEnvironment(self)
-            self.env_h(1) = surf([-self.imgSize,-self.imgSize;self.imgSize,self.imgSize],[-self.imgSize,self.imgSize;-self.imgSize,self.imgSize],[0,0;0,0],'CData',imread('ground_mars.jpg'),'FaceColor','texturemap');
-            self.env_h(2) = surf([self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[self.imgSize,self.imgSize;self.imgSize,self.imgSize],[5,5;0,0],'CData',imread('wall_mars.jpg'),'FaceColor','texturemap');
-            self.env_h(3) = surf([self.imgSize,self.imgSize;self.imgSize,self.imgSize],[self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
-            self.env_h(4) = PlaceObject("spacebase.ply", [7.8 7 0]);
-            self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
-            self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
-            self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
-        end
-        
-        function RemoveEnvironment(self)
-            delete(self.env_h);
-            delete(self.rocks_h);
-        end
                 
         function OpenGripper(self)
             rightQ = [0,-5]*pi/180;
@@ -150,6 +134,11 @@ classdef GetUR3 < handle
                 self.modelLeft.animate(leftQ); %move gripper
             end
         end
+        
+        function [eebase] = GeteeBase(self)
+            eebase = self.model.fkine(self.model.getpos);
+            eebase(3,4) = ee(3,4) - 0.15; % offsets grippe automatically
+        end 
 
     end
     
@@ -227,16 +216,16 @@ classdef GetUR3 < handle
             
             %Plot annd Colour Gripper
             for linkIndex = 1:self.modelRight.n
-                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['gripper_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
+                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['gripper_ur3_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
                 self.modelRight.faces{linkIndex + 1} = faceData;
                 self.modelRight.points{linkIndex + 1} = vertexData;
             end
             q = [0,-5]*pi/180; % gripper open as wide as possible
             self.modelRight.plot3d(q,'workspace',self.workspace);
             %             self.modelRight.teach();
-%             if isempty(findobj(get(gca,'Children'),'Type','Light'))
-%                 camlight
-%             end
+            if isempty(findobj(get(gca,'Children'),'Type','Light'))
+                camlight
+            end
             
             for linkIndex = 0:1
                 handles = findobj('Tag', self.modelRight.name);
@@ -258,15 +247,15 @@ classdef GetUR3 < handle
             self.modelLeft.base = gripperBase* troty(pi/2); %self.modelLeft.base * transl([[gripperBase]]);
             
             % Plot Left Finger
-            [ faceData, vertexData, plyData{2} ] = plyread(['gripper_3.ply'],'tri'); %#ok<AGROW>
+            [ faceData, vertexData, plyData{2} ] = plyread(['gripper_ur3_3.ply'],'tri'); %#ok<AGROW>
             self.modelLeft.faces{2} = faceData;
             self.modelLeft.points{2} = vertexData;
             self.modelLeft.plot3d(5*pi/180,'workspace',self.workspace,'arrow');
             
             % Colour Left Finger
-%             if isempty(findobj(get(gca,'Children'),'Type','Light'))
-%                 camlight
-%             end
+            if isempty(findobj(get(gca,'Children'),'Type','Light'))
+                camlight
+            end
             handles = findobj('Tag', self.modelLeft.name);
             h = get(handles,'UserData');
             try

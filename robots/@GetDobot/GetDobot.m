@@ -1,6 +1,4 @@
-%% CHECKLIST
-% Finish end effector and add the end effector to the move function
-% Dobot movement function
+
 %%
 classdef GetDobot < handle
     properties
@@ -156,7 +154,7 @@ classdef GetDobot < handle
             
             %             Plot annd Colour Gripper
             for linkIndex = 1:self.modelRight.n
-                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['gripper_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
+                [ faceData, vertexData, plyData{linkIndex + 1} ] = plyread(['gripper_dob_',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
                 self.modelRight.faces{linkIndex + 1} = faceData;
                 self.modelRight.points{linkIndex + 1} = vertexData;
             end
@@ -186,15 +184,15 @@ classdef GetDobot < handle
             self.modelLeft.base = gripperBase* troty(pi/2); %self.modelLeft.base * transl([[gripperBase]]);
             
             % Plot Left Finger
-            [ faceData, vertexData, plyData{2} ] = plyread(['gripper_3.ply'],'tri'); %#ok<AGROW>
+            [ faceData, vertexData, plyData{2} ] = plyread(['gripper_dob_3.ply'],'tri'); %#ok<AGROW>
             self.modelLeft.faces{2} = faceData;
             self.modelLeft.points{2} = vertexData;
             self.modelLeft.plot3d(5*pi/180,'workspace',self.workspace,'arrow');
             
             % Colour Left Finger
-%             if isempty(findobj(get(gca,'Children'),'Type','Light'))
-%                 camlight
-%             end
+            if isempty(findobj(get(gca,'Children'),'Type','Light'))
+                camlight
+            end
             handles = findobj('Tag', self.modelLeft.name);
             h = get(handles,'UserData');
             try
