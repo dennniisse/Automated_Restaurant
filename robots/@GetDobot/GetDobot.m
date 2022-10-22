@@ -101,7 +101,7 @@ classdef GetDobot < handle
             L(6) = Link([0      0.0637      0       0      0]);
             
             self.model = SerialLink(L,'name',name);
-            self.model.base = self.model.base * transl([0 1 0]);
+            self.model.base = self.model.base * transl([3 0 0]);
             
             self.model.delay = 0;
             
