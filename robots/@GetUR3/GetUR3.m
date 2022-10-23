@@ -20,6 +20,10 @@ classdef GetUR3 < handle
     methods
         function self = GetUR3(self)
             self.GetRobot();
+<<<<<<< Updated upstream
+=======
+            self.GetEnvironment();
+>>>>>>> Stashed changes
             self.GetGripper();
             self.initPickUp();
         end      
@@ -137,7 +141,7 @@ classdef GetUR3 < handle
         
         function [eebase] = GeteeBase(self)
             eebase = self.model.fkine(self.model.getpos);
-            eebase(3,4) = ee(3,4) - 0.15; % offsets grippe automatically
+            eebase(3,4) = eebase(3,4) - 0.15; % offsets grippe automatically
         end 
 
     end

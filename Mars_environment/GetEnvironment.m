@@ -2,6 +2,7 @@ classdef GetEnvironment < handle
     properties
         payload_h = [patch patch patch patch patch patch patch patch patch]; % must initialise as a patch
         payloadLocation;
+        hopperLocation = [-0.5 0.45 0];
     end
     
     properties (Access = private)
@@ -10,6 +11,7 @@ classdef GetEnvironment < handle
         count = 0; % keeps count of environment handle
         payload_rocksVertexCount; v_rocks; % to move payload
         payload_tilesVertexCount; v_tiles;
+        placeTile = [3.3 -0.133 0]; % initialise
     end
     
     methods
@@ -25,7 +27,7 @@ classdef GetEnvironment < handle
             self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
             self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
-            hold on;
+            hopper = PlaceObject("hopper.ply",hopperLocation);
         end
         
         
@@ -96,7 +98,7 @@ classdef GetEnvironment < handle
             % w = 0.133 ; h = 0.034
             index = [];
             for y = -0.133:0.17:0.133 
-                for z = 0:0.034:(0.034*10)
+                for z = (0.034*10):-0.034:0
                     base = [2.7 y  z]; ind = self.GetTiles(base);
                     self.payloadLocation(ind, 1) = base(1);
                     self.payloadLocation(ind, 2) = base(2);
@@ -104,7 +106,18 @@ classdef GetEnvironment < handle
                     index = [index ; ind];
                 end
             end   
-
+        end 
+        
+        function [location] = getTileLocation(self,index)
+            if(index < 4)
+                location = self.placeTile;
+                self.placeTile(2) = self.placeTile(2) + 0.133; % increase by width of tile 
+            elseif (index > 3)  
+                self.placeTile(1) = 3.2300;
+                location = self.placeTile; 
+                self.placeTile(2) = self.placeTile(2) - 0.133;                
+            end 
+                
         end 
         
         
