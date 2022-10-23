@@ -18,6 +18,7 @@ dobot = GetDobot();
 % UR3 = GetUR3();
 steps = 50; 
 tileCounter = 1;
+dobotOffset = 0.30;
 
 % dobot
 tileNum = e.LoadTiles(); 
@@ -43,9 +44,9 @@ qMatrixDobot = dobot.GetQMatrix(goalDobot,false);
 
 for i = 1 : size(qMatrixDobot,1) 
     dobot.model.animate(qMatrixDobot(i,:));
-    dobot.transformGripper(steps,false);     
-    e.UpdateLocation(tileCounter, dobot.GeteeBase,'tile');
-    
+    dobot.transformGripper(steps,false);  
+    ee = dobot.GeteeBase;
+    e.UpdateLocation(tileCounter, ee,'tile');    
 end
 
 tileCounter = tileCounter + 1;

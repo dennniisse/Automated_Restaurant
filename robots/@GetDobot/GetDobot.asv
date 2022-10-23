@@ -9,9 +9,9 @@ classdef GetDobot < handle
     properties (Access = private)
         workspace = [-2 2 -2 2 -0.05 4];
         steps = 50;
-        gripperOffset = 0.3;
+        gripperOffset = 0.2;
         qMatrix = []; 
-        placeTile = [3.3 -0.133 0]; % initialise
+        
     end
     
     methods
@@ -89,14 +89,9 @@ classdef GetDobot < handle
             end
         end
         
-        function [location] = getTileLocation(self,index)
-            if(index < 3)
-                location = self.placeTile;
-                self.placeTile(2) = self.placeTile(2) + 0.133; % increase by wi
-            elseif (index > 3)
-                
-            end 
-                
+        function [eebase] = GeteeBase(self)
+            eebase = self.model.fkine(self.model.getpos);           
+            eebase(3,4) = eebase(3,4) - 0.15; % offsets grippe automatically
         end 
     end 
     methods (Access = private)

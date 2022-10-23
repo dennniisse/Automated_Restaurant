@@ -9,7 +9,7 @@ classdef GetDobot < handle
     properties (Access = private)
         workspace = [-2 2 -2 2 -0.05 4];
         steps = 50;
-        gripperOffset = 0.3;
+        gripperOffset = 0.2;
         qMatrix = []; 
         
     end
@@ -90,8 +90,10 @@ classdef GetDobot < handle
         end
         
         function [eebase] = GeteeBase(self)
-            eebase = self.model.fkine(self.model.getpos);
-            eebase(3,4) = eebase(3,4) - 0.15; % offsets grippe automatically
+            eebase = self.model.fkine(self.model.getpos); 
+%             z = eebase(3,4) - 0.12;
+%             eebase = eebase*transl([0 0 z]);
+%             eebase(3,4) = eebase(3,4) - 0.15; % offsets grippe automatically
         end 
     end 
     methods (Access = private)
@@ -213,7 +215,7 @@ classdef GetDobot < handle
         end       
         
         function move(self,goal,gripperBool)
-%             goal(3) = goal(3) + self.gripperOffset;
+            goal(3) = goal(3) + self.gripperOffset;
             newQ = transl(goal)*troty(pi);
             q = self.model.ikcon(newQ);
             self.qMatrix = jtraj(self.model.getpos,q,50);            

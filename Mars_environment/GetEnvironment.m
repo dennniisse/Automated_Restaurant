@@ -2,7 +2,7 @@ classdef GetEnvironment < handle
     properties
         payload_h = [patch patch patch patch patch patch patch patch patch]; % must initialise as a patch
         payloadLocation;
-        hopperLocation = [-0.5 0.45 0];
+        hopperLocation = [-0.5 0.45 0.25];
     end
     
     properties (Access = private)
@@ -27,7 +27,7 @@ classdef GetEnvironment < handle
             self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
             self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
-            hopper = PlaceObject("hopper.ply",hopperLocation);
+            hopper = PlaceObject("hopper.ply",[-0.5 - 0.45 -0.2]);
         end
         
         
@@ -78,12 +78,31 @@ classdef GetEnvironment < handle
         
         %         UpdateLocation requires a base input of array 4 x 4, homogenous transformation
         
+%         function UpdateLocation(self,index,eeBase,payloadtype) % payloadtype = 'rock' or 'tile'
+%             % update location in array
+%             eeBase = eeBase * transl([0 0 (eeBase(3,4)+0.3)]);
+%             self.payloadLocation(index, 1) = eeBase(1,4);
+%             self.payloadLocation(index, 2) = eeBase(2,4);
+%             self.payloadLocation(index, 3) = eeBase(3,4);
+%             % update ply file data    
+%             switch payloadtype
+%                 case 'rock'
+%                     newLocation = [eeBase * [self.v_rocks,ones(self.payload_rocksVertexCount,1)]']';                  
+%                 case 'tile'                    
+%                     newLocation = [eeBase * [self.v_tiles,ones(self.payload_tilesVertexCount,1)]']';
+%             end
+%             % update location in matlab 
+%             self.payload_h(index).Vertices = newLocation(:,1:3);
+%         end
+        
         function UpdateLocation(self,index,eeBase,payloadtype) % payloadtype = 'rock' or 'tile'
             % update location in array
+            z = eeBase(3,4) - 0.1;            
+            eeBase = eeBase * transl([0 0 z]) ;
             self.payloadLocation(index, 1) = eeBase(1,4);
             self.payloadLocation(index, 2) = eeBase(2,4);
             self.payloadLocation(index, 3) = eeBase(3,4);
-            % update ply file data        
+            % update ply file data    
             switch payloadtype
                 case 'rock'
                     newLocation = [eeBase * [self.v_rocks,ones(self.payload_rocksVertexCount,1)]']';                  

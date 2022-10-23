@@ -20,10 +20,6 @@ classdef GetUR3 < handle
     methods
         function self = GetUR3(self)
             self.GetRobot();
-<<<<<<< Updated upstream
-=======
-            self.GetEnvironment();
->>>>>>> Stashed changes
             self.GetGripper();
             self.initPickUp();
         end      
