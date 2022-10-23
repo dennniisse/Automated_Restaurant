@@ -11,18 +11,138 @@ classdef GetUR3 < handle
         imgSize = 12;
         workspace = [-2 2 -2 2 -0.05 4];
         steps = 50;
-        % environment handles
-        env_h; rocks_h;
-        gripperOffset = 0.2
+        gripperOffset = 0.2;
+        qMatrix = [];       
+        
+        
     end
     
     methods
         function self = GetUR3(self)
             self.GetRobot();
-            self.GetEnvironment();
             self.GetGripper();
             self.initPickUp();
+        end      
+                
+        function OpenGripper(self)
+            rightQ = [0,-5]*pi/180;
+            leftQ = 5*pi/180;
+            self.modelRight.animate([0,rightQ(2)]); %move gripper
+            self.modelLeft.animate(leftQ); %move gripper 
+        end 
+        
+        % Calculates trajectory and returns the qMatrix but doesn't animate
+        function [qMatrix] = GetQMatrix(self,newQ,gripperBool) 
+            goal = newQ;
+%             reachable = self.checkReach(goal);            
+            self.move(goal,gripperBool);
+            qMatrix = self.qMatrix; 
+        end 
+        
+%         function move(self,goal,gripperBool) 
+%             q2 = goal;
+%             q2(3) = goal(3) + self.gripperOffset;
+%             newQ = eye(4)*transl(q2)*troty(pi);
+%             finalPos = self.model.ikcon(newQ);
+%             intPos = self.model.getpos();
+%             s = lspb(0,1,self.steps);
+%             qMatrix = nan(self.steps,self.model.n);
+%             for i = 1:self.steps
+%                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
+%                 self.model.animate(qMatrix(i,:));
+%                 self.transformGripper(self.steps,gripperBool);
+%                 drawnow();                
+%             end
+%         end
+
+        % applies RMRC
+       
+        
+        function initPickUp(self)    
+            qMatrix = [self.model.getpos];
+            qWayPoints = ([qMatrix;...
+                0 1.1436 0 0 0 0 -1.6197;...
+                0 1.1436 -0.7079 0 0 0 -1.6197;...
+                0 1.1436 -0.7079 2.5908 -0 0 -1.6197;...
+                0 1.1436 -0.7079 2.5908 -3.4388 0 -1.6197;...
+                0 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197]); 
+            steps = round(self.steps / size(qWayPoints,1));
+%             q = [-0.2043 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197]
+            for i = 1:size(qWayPoints,1)-1
+                qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
+            end
+            for i = 1:size(qMatrix,1)
+                self.model.animate(qMatrix(i,:));
+                self.transformGripper(steps,false)
+                drawnow();
+            end
+        end 
+            
+        function initDropOff(self)
+            qMatrix = [self.model.getpos];
+            qWayPoints = ([qMatrix; ...
+                qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197;...
+                qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 0 -1.6197;...
+                qMatrix(1) 1.1436 -0.7079 2.5908 0 0 -1.6197;...
+                qMatrix(1) 0 -0.7079 0 0 0 0;...
+                0 0 0 0 0 0 0]);
+            steps = round(self.steps / size(qWayPoints,1));
+            
+            for i = 1:size(qWayPoints,1)-1
+                qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
+            end
+            
+            for i = 1:size(qMatrix,1)
+                disp(i);
+                self.model.animate(qMatrix(i,:));
+                qMatrix(i,:)
+                self.transformGripper(steps,false);
+                drawnow();
+            end
+            
+        end     
+        
+        function [reachable] = checkReach(self, goal)
+            % 12 < x < 0 reaachable
+            % - 0.5 y < 0.5 reachable 
+            %V = πr2((4/3)r + a) % check wrkspc volume?? Do I even need
+            %this though can just set x y z limit 
+            %V/2 % check if item is within rkspc volume 
+            
+        end 
+        
+        function transformGripper(self,steps,gripperClose) %true close gripper
+            %transform Base
+            gripperBase = self.model.fkine(self.model.getpos());
+            if (gripperClose == true)
+                q = deg2rad(10/steps); % the distance the gripper moves is already set (15deg).
+                % Therefore, using steps the UR3 is moving from, the distance at each step can be computer
+                rightQ = self.modelRight.getpos() + q ; %return q = [q1 q2], move towards +ve 5deg to close
+                leftQ = self.modelLeft.getpos() - q; %return q = [q1], move towards -ve 10deg to close
+                self.modelRight.base = gripperBase* troty(pi/2)* trotx(pi/2);
+                self.modelLeft.base = gripperBase* troty(pi/2)* trotx(pi/2);
+                %Move gripper
+                self.modelRight.animate([0,rightQ(2)]); %move gripper
+                self.modelLeft.animate(leftQ); %move gripper
+            end
+            if (gripperClose == false)
+                rightQ = self.modelRight.getpos();
+                leftQ = self.modelLeft.getpos();
+                self.modelRight.base = gripperBase* troty(pi/2)* trotx(pi/2);
+                self.modelLeft.base = gripperBase* troty(pi/2)* trotx(pi/2);
+                self.modelRight.animate([0,rightQ(2)]); %move gripper
+                self.modelLeft.animate(leftQ); %move gripper
+            end
         end
+        
+        function [eebase] = GeteeBase(self)
+            eebase = self.model.fkine(self.model.getpos);
+            eebase(3,4) = ee(3,4) - 0.15; % offsets grippe automatically
+        end 
+
+    end
+    
+    methods (Access = private)
         
         function GetRobot(self)
             name = 'UR3';
@@ -54,20 +174,19 @@ classdef GetUR3 < handle
             end
             % Plot UR3 as 3D
             q = zeros(1,7); q(7) =  -1.3656;
-%             q = [0    1.0210   -1.5708    1.5708   -3.4016   -1.5984   0]; % 
-%             q = [-0.2469    1.1097   -1.3128    3.2072   -3.4505   -1.6088   -1.3656];
-%             q = [-0.2043 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197];% obtained from sim, main pose
-%             q = [0 1.5708 -1.5708 0 0 -1.5708 0]; % straight man
-%             q = deg2rad([0 90 -45 45 -90 -90 0]); % bad starting pose
-
-%             q = deg2rad([0 90 -155 130 -90 -90 0]); %ssshhh
-
+            %             q = [0    1.0210   -1.5708    1.5708   -3.4016   -1.5984   0]; %
+            %             q = [-0.2469    1.1097   -1.3128    3.2072   -3.4505   -1.6088   -1.3656];
+            %             q = [-0.2043 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197];% obtained from sim, main pose
+            %             q = [0 1.5708 -1.5708 0 0 -1.5708 0]; % straight man
+            %             q = deg2rad([0 90 -45 45 -90 -90 0]); % bad starting pose
+            %             q = deg2rad([0 90 -155 130 -90 -90 0]); %ssshhh
+            
             self.model.plot3d(q,'workspace',self.workspace,'ortho');
-             axis equal;
-            if isempty(findobj(get(gca,'Children'),'Type','Light'))
-                camlight
-            end
-%             self.model.teach();
+            axis equal;
+%             if isempty(findobj(get(gca,'Children'),'Type','Light'))
+%                 camlight
+%             end
+            %             self.model.teach();
             % Colour UR3
             for linkIndex = 1:self.model.n
                 handles = findobj('Tag', self.model.name); %findobj: find graphics objects with
@@ -83,22 +202,6 @@ classdef GetUR3 < handle
                 end
             end
             hold on;
-        end
-        
-        
-        function GetEnvironment(self)
-            self.env_h(1) = surf([-self.imgSize,-self.imgSize;self.imgSize,self.imgSize],[-self.imgSize,self.imgSize;-self.imgSize,self.imgSize],[0,0;0,0],'CData',imread('ground_mars.jpg'),'FaceColor','texturemap');
-            self.env_h(2) = surf([self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[self.imgSize,self.imgSize;self.imgSize,self.imgSize],[5,5;0,0],'CData',imread('wall_mars.jpg'),'FaceColor','texturemap');
-            self.env_h(3) = surf([self.imgSize,self.imgSize;self.imgSize,self.imgSize],[self.imgSize,-self.imgSize;self.imgSize,-self.imgSize],[5,5;0,0],'CData',imread('wall_mars_1.jpg'),'FaceColor','texturemap');
-            self.env_h(4) = PlaceObject("spacebase.ply", [7.8 7 0]);
-            self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
-            self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
-            self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
-        end
-        
-        function RemoveEnvironment(self)
-            delete(self.env_h);
-            delete(self.rocks_h);
         end
         
         function GetGripper(self)
@@ -143,83 +246,34 @@ classdef GetUR3 < handle
             self.modelLeft.delay = 0;
             self.modelLeft.base = gripperBase* troty(pi/2); %self.modelLeft.base * transl([[gripperBase]]);
             
-            % Plot Left Finger 
+            % Plot Left Finger
             [ faceData, vertexData, plyData{2} ] = plyread(['gripper_ur3_3.ply'],'tri'); %#ok<AGROW>
             self.modelLeft.faces{2} = faceData;
             self.modelLeft.points{2} = vertexData;
             self.modelLeft.plot3d(5*pi/180,'workspace',self.workspace,'arrow');
             
-            % Colour Left Finger   
+            % Colour Left Finger
             if isempty(findobj(get(gca,'Children'),'Type','Light'))
                 camlight
-            end                     
-            handles = findobj('Tag', self.modelLeft.name); 
+            end
+            handles = findobj('Tag', self.modelLeft.name);
             h = get(handles,'UserData');
             try
                 h.link(2).Children.FaceVertexCData = [plyData{2}.vertex.red ...
-                    , plyData{2}.vertex.green ...                                  
+                    , plyData{2}.vertex.green ...
                     , plyData{2}.vertex.blue]/255;
                 h.link(2).Children.FaceColor = 'interp';
             catch ME_1
             end
         end
-        
-        function OpenGripper(self)
-            rightQ = [0,-5]*pi/180;
-            leftQ = 5*pi/180;
-            self.modelRight.animate([0,rightQ(2)]); %move gripper
-            self.modelLeft.animate(leftQ); %move gripper 
-        end 
-        
-        function transformGripper(self,steps,gripperClose) %true close gripper
-            %transform Base
-            gripperBase = self.model.fkine(self.model.getpos());
-            if (gripperClose == true)
-            q = deg2rad(10/steps); % the distance the gripper moves is already set (15deg). 
-                                        % Therefore, using steps the UR3 is moving from, the distance at each step can be computer
-            rightQ = self.modelRight.getpos() + q ; %return q = [q1 q2], move towards +ve 5deg to close
-            leftQ = self.modelLeft.getpos() - q; %return q = [q1], move towards -ve 10deg to close            
-            self.modelRight.base = gripperBase* troty(pi/2)* trotx(pi/2);
-            self.modelLeft.base = gripperBase* troty(pi/2)* trotx(pi/2);            
-            %Move gripper            
-                self.modelRight.animate([0,rightQ(2)]); %move gripper
-                self.modelLeft.animate(leftQ); %move gripper
-            end
-            if (gripperClose == false)
-                rightQ = self.modelRight.getpos();
-                leftQ = self.modelLeft.getpos();
-                self.modelRight.base = gripperBase* troty(pi/2)* trotx(pi/2);
-                self.modelLeft.base = gripperBase* troty(pi/2)* trotx(pi/2);
-                self.modelRight.animate([0,rightQ(2)]); %move gripper
-                self.modelLeft.animate(leftQ); %move gripper                
-            end
-        end
-        
-%         function move(self,goal,gripperBool) 
-%             q2 = goal;
-%             q2(3) = goal(3) + self.gripperOffset;
-%             newQ = eye(4)*transl(q2)*troty(pi);
-%             finalPos = self.model.ikcon(newQ);
-%             intPos = self.model.getpos();
-%             s = lspb(0,1,self.steps);
-%             qMatrix = nan(self.steps,self.model.n);
-%             for i = 1:self.steps
-%                 qMatrix(i,:) = (1-s(i))*intPos + s(i)*finalPos;
-%                 self.model.animate(qMatrix(i,:));
-%                 self.transformGripper(self.steps,gripperBool);
-%                 drawnow();                
-%             end
-%         end
-
-        % applies RMRC
-        function move(self,goal,gripperBool)   
+                
+        function move(self,goal,gripperBool)
             goal(3) = goal(3) + self.gripperOffset;
-            disp(["GOAL IS: ", num2str(goal)]);
-            goal = transl(goal)  * troty(pi);
+            goal = transl(goal)  * troty(pi)
             % Set parametersf steps for simu
             t = 1;             % Total time (s)
             deltaT = 0.02;      % Control frequency
-            steps = t/deltaT;   % No. olation
+            steps = t/deltaT;   % No.steps
             delta = 2*pi/steps; % Small angle change
             epsilon = 0.1;      % Threshold value for manipulability/Damped Least Squares
             W = diag([1 1 1 0.1 0.1 0.1]);    % Weighting matrix for the velocity vector
@@ -237,7 +291,7 @@ classdef GetUR3 < handle
             th1 = tr2rpy(T1);
             th2 = tr2rpy(goal);
             
-            % Set up trajectory 
+            % Set up trajectory
             s = lspb(0,1,steps);                % Trapezoidal trajectory scalar
             for i=1:steps
                 x(:,i) = (1-s(i))*x1 + s(i)*x2; % Points in xyz
@@ -277,55 +331,9 @@ classdef GetUR3 < handle
                 qMatrix(i+1,:) = qMatrix(i,:) + deltaT*qdot(i,:);                         	% Update next joint state based on joint velocities
             end
             
-            for i = 1:steps
-                self.model.animate(qMatrix(i,:));
-                self.transformGripper(steps,true);
-            end
+            self.qMatrix = qMatrix;
         end
         
-        function initPickUp(self)    
-            qMatrix = [self.model.getpos];
-            qWayPoints = ([qMatrix;...
-                0 1.1436 0 0 0 0 -1.6197;...
-                0 1.1436 -0.7079 0 0 0 -1.6197;...
-                0 1.1436 -0.7079 2.5908 -0 0 -1.6197;...
-                0 1.1436 -0.7079 2.5908 -3.4388 0 -1.6197;...
-                0 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197]); 
-            steps = round(self.steps / size(qWayPoints,1));
-%             q = [-0.2043 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197]
-            for i = 1:size(qWayPoints,1)-1
-                qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
-            end
-            for i = 1:size(qMatrix,1)
-                self.model.animate(qMatrix(i,:));
-                self.transformGripper(steps,false)
-                drawnow();
-            end
-        end 
-            
-        function initDropOff(self)
-            qMatrix = [self.model.getpos];
-            qWayPoints = ([qMatrix; ...
-                qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 -1.5793 -1.6197;...
-                qMatrix(1) 1.1436 -0.7079 2.5908 -3.4388 0 -1.6197;...
-                qMatrix(1) 1.1436 -0.7079 2.5908 0 0 -1.6197;...
-                qMatrix(1) 0 -0.7079 0 0 0 0;...
-                0 0 0 0 0 0 0]);
-            steps = round(self.steps / size(qWayPoints,1));
-            
-            for i = 1:size(qWayPoints,1)-1
-                qMatrix = [qMatrix ; jtraj(qWayPoints(i,:),qWayPoints(i+1,:),steps)];
-            end
-            
-            for i = 1:size(qMatrix,1)
-                disp(i);
-                self.model.animate(qMatrix(i,:));
-                qMatrix(i,:)
-                self.transformGripper(steps,false);
-                drawnow();
-            end
-            
-        end
         
     end
 end
