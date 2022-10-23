@@ -28,6 +28,7 @@ classdef GetEnvironment < handle
             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
             self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
             hopper = PlaceObject("hopper.ply",[-0.5 - 0.45 -0.2]);
+            hopper = PlaceObject("hopper.ply",[-0.5 0.45 -0.2]);
         end
         
         
@@ -95,10 +96,12 @@ classdef GetEnvironment < handle
 %             self.payload_h(index).Vertices = newLocation(:,1:3);
 %         end
         
+                
         function UpdateLocation(self,index,eeBase,payloadtype) % payloadtype = 'rock' or 'tile'
             % update location in array
             z = eeBase(3,4) - 0.1;            
             eeBase = eeBase * transl([0 0 z]) ;
+            % update location in array            
             self.payloadLocation(index, 1) = eeBase(1,4);
             self.payloadLocation(index, 2) = eeBase(2,4);
             self.payloadLocation(index, 3) = eeBase(3,4);
