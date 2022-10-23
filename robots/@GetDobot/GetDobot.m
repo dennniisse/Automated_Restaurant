@@ -213,7 +213,7 @@ classdef GetDobot < handle
         end       
         
         function move(self,goal,gripperBool)
-            goal(3) = goal(3) + self.gripperOffset;
+%             goal(3) = goal(3) + self.gripperOffset;
             newQ = transl(goal)*troty(pi);
             q = self.model.ikcon(newQ);
             self.qMatrix = jtraj(self.model.getpos,q,50);            

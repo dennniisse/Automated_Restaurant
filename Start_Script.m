@@ -22,6 +22,7 @@ tileCounter = 1;
 % dobot
 tileNum = e.LoadTiles(); 
 goalDobot = e.payloadLocation(tileCounter,:);
+goalDobot(3) = goalDobot(3) + 0.3;
 qMatrixDobot = dobot.GetQMatrix(goalDobot,true);
 
 % ur3
