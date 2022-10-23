@@ -137,7 +137,7 @@ classdef GetUR3 < handle
         
         function [eebase] = GeteeBase(self)
             eebase = self.model.fkine(self.model.getpos); 
-            z = 0.1;            
+            z = self.gripperOffset;            
             eebase = eebase * transl([0 0 z]) ;
         end 
 
@@ -156,7 +156,7 @@ classdef GetUR3 < handle
             L(6) = Link([0    0.08535     0   -pi/2    0   0]);
             L(7) = Link([0    0.0819      0   0   0   0]);
             
-            L(1).qlim = [-3 0];
+            L(1).qlim = [-100 0];
             L(2).qlim = [-360 360]*pi/180;
             L(3).qlim = [-360 360]*pi/180;
             L(4).qlim = [-360 360]*pi/180;

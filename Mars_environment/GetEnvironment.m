@@ -2,7 +2,7 @@ classdef GetEnvironment < handle
     properties
         payload_h = [patch patch patch patch patch patch patch patch patch]; % must initialise as a patch
         payloadLocation;
-        hopperLocation = [-0.5 0.45 0.25];
+        hopperLocation = [-0.5 0.45 0.4];
     end
     
     properties (Access = private)
@@ -27,7 +27,7 @@ classdef GetEnvironment < handle
             self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
             self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
-            hopper = PlaceObject("hopper.ply",[-0.5 0.45 -0.2]);
+            hopper = PlaceObject("hopper.ply",[-0.5 0.45 0]);
         end
         
         
@@ -98,7 +98,7 @@ classdef GetEnvironment < handle
             % w = 0.133 ; h = 0.034
             index = [];
             for y = -0.133:0.17:0.133 
-                for z = (0.034*10):-0.034:0
+                for z = (0.034*7):-0.034:0
                     base = [2.7 y  z]; ind = self.GetTiles(base);
                     self.payloadLocation(ind, 1) = base(1);
                     self.payloadLocation(ind, 2) = base(2);

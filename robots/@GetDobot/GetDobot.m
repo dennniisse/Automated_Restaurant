@@ -91,7 +91,7 @@ classdef GetDobot < handle
         
         function [eebase] = GeteeBase(self)
             eebase = self.model.fkine(self.model.getpos); 
-            z = 0.1;            
+            z = self.gripperOffset;            
             eebase = eebase * transl([0 0 z]) ;
         end 
     end 
