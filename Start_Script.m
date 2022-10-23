@@ -12,10 +12,10 @@
 % repeat 
 
 clear; clc; clf;
-hold on;
+hold on; hopper = PlaceObject("hopper.ply",[-0.5 0.45 -0.2]);
 e = GetEnvironment();
 dobot = GetDobot();
-% UR3 = GetUR3();
+UR3 = GetUR3();
 steps = 50; 
 tileCounter = 1;
 dobotOffset = 0.30;
@@ -24,30 +24,38 @@ dobotOffset = 0.30;
 tileNum = e.LoadTiles(); 
 goalDobot = e.payloadLocation(tileCounter,:);
 goalDobot(3) = goalDobot(3) + 0.3;
-qMatrixDobot = dobot.GetQMatrix(goalDobot,true);
+qMatrixDobot = dobot.GetQMatrix(goalDobot);
 
 % ur3
-% goalUR3 = [-1.5 0 0]; % change only y 
-% rock(1) = e.GetRock(goalUR3);
-% qMatrixUR3 = UR3.GetQMatrix(goalUR3,true);
-% % animate
-% for i = 1 : size(qMatrixUR3,1) % use ur3 due to its larger size 
-%     dobot.model.animate(qMatrixDobot(i,:));
-%     dobot.transformGripper(steps,true);
-%     UR3.model.animate(qMatrixUR3(i,:));
-%     UR3.transformGripper(steps,true);
-% end
+goalUR3 = [-1.5 0 0]; % change only y 
+rock(1) = e.GetRock(goalUR3);
+qMatrixUR3 = UR3.GetQMatrix(goalUR3);
+% animate
+for i = 1 : size(qMatrixUR3,1) % use ur3 due to its larger size 
+    dobot.model.animate(qMatrixDobot(i,:));
+    dobot.transformGripper(steps,true);
+    UR3.model.animate(qMatrixUR3(i,:));
+    UR3.transformGripper(steps,true);
+end
 
 % dobot
 goalDobot = e.getTileLocation(tileCounter);
-qMatrixDobot = dobot.GetQMatrix(goalDobot,false);
+qMatrixDobot = dobot.GetQMatrix(goalDobot);
 
+% ur3
+goalUR3 = e.hopperLocation;
+qMatrixUR3 = UR3.GetQMatrix(goalUR3);
 for i = 1 : size(qMatrixDobot,1) 
     dobot.model.animate(qMatrixDobot(i,:));
     dobot.transformGripper(steps,false);  
     ee = dobot.GeteeBase;
-    e.UpdateLocation(tileCounter, ee,'tile');    
+    e.UpdateLocation(tileCounter,ee,'tile');    
+    
+    UR3.model.animate(qMatrixUR3(i,:));
+    UR3.transformGripper(steps,false);
+    ee = UR3.GeteeBase;
+    e.UpdateLocation(rock(1),ee,'rock');
 end
-
+e.UpdateLocation(tileCounter,transl([goalDobot(1) goalDobot(2) 0]),'tile');
 tileCounter = tileCounter + 1;
 

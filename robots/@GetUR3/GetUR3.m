@@ -32,10 +32,10 @@ classdef GetUR3 < handle
         end 
         
         % Calculates trajectory and returns the qMatrix but doesn't animate
-        function [qMatrix] = GetQMatrix(self,newQ,gripperBool) 
+        function [qMatrix] = GetQMatrix(self,newQ) 
             goal = newQ;
 %             reachable = self.checkReach(goal);            
-            self.move(goal,gripperBool);
+            self.move(goal);
             qMatrix = self.qMatrix; 
         end 
         
@@ -136,8 +136,9 @@ classdef GetUR3 < handle
         end
         
         function [eebase] = GeteeBase(self)
-            eebase = self.model.fkine(self.model.getpos);
-            eebase(3,4) = eebase(3,4) - 0.15; % offsets grippe automatically
+            eebase = self.model.fkine(self.model.getpos); 
+            z = 0.1;            
+            eebase = eebase * transl([0 0 z]) ;
         end 
 
     end
@@ -267,7 +268,7 @@ classdef GetUR3 < handle
             end
         end
                 
-        function move(self,goal,gripperBool)
+        function move(self,goal)
             goal(3) = goal(3) + self.gripperOffset;
             goal = transl(goal)  * troty(pi)
             % Set parametersf steps for simu

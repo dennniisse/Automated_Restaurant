@@ -59,10 +59,8 @@ classdef GetDobot < handle
             end
         end
         
-        function [qMatrix] = GetQMatrix(self,newQ,gripperBool) 
         function [qMatrix] = GetQMatrix(self,newQ) 
             goal = newQ;
-            self.move(goal,gripperBool);
             self.move(goal);
             qMatrix = self.qMatrix; 
         end 
@@ -93,9 +91,6 @@ classdef GetDobot < handle
         
         function [eebase] = GeteeBase(self)
             eebase = self.model.fkine(self.model.getpos); 
-%             z = eebase(3,4) - 0.12;
-%             eebase = eebase*transl([0 0 z]);
-%             eebase(3,4) = eebase(3,4) - 0.15; % offsets grippe automatically
             z = 0.1;            
             eebase = eebase * transl([0 0 z]) ;
         end 
@@ -218,7 +213,6 @@ classdef GetDobot < handle
             end
         end       
         
-        function move(self,goal,gripperBool)
         function move(self,goal)
             goal(3) = goal(3) + self.gripperOffset;
             newQ = transl(goal)*troty(pi);
