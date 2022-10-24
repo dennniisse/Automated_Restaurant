@@ -26,7 +26,7 @@ classdef GetEnvironment < handle
             self.env_h(5) = PlaceObject("crate.ply",[0 0 0]);
             self.rocks_h(1) = PlaceObject("BeachRockFree_decimated.ply",[-self.imgSize self.imgSize 0]);
             self.rocks_h(2) = PlaceObject("BeachRockFree_decimated.ply",[-(self.imgSize-4) self.imgSize 0]);
-            self.rocks_h(5) = PlaceObject("rockypath.ply",[0 0 0]);
+            rockypath = PlaceObject("rockypath.ply",[0 0 0]);
             hopper = PlaceObject("hopper.ply",[-0.5 0.45 0]);
         end
         

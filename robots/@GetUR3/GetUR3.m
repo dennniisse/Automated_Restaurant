@@ -9,7 +9,7 @@ classdef GetUR3 < handle
     end
     properties (Access = private)
         imgSize = 12;
-        workspace = [-2 2 -2 2 -0.05 4];
+        workspace = [-12 12 -12 12 -0.05 5];
         steps = 50;
         gripperOffset = 0.2;
         qMatrix = [];       
